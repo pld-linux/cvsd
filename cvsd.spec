@@ -1,6 +1,8 @@
 # TODO:
-# - cvsadmin uid,gid, evil postun
-# - $RPM_SOURCE_DIR in %pre???!!!
+# - cvsadmin uid,gid
+# - check permissions
+# - missing files
+# - rc-inetd file(?) / init script(?)
 Summary:	cvsd, a chroot/suid wrapper for running a cvs pserver
 Summary(pl):	cvsd - nak³adka na cvs pserver korzystaj±ca z chroot/suid
 Name:		cvsd
@@ -10,11 +12,27 @@ License:	GPL
 Group:		Development/Version Control
 Source0:	http://tiefighter.et.tudelft.nl/~arthur/cvsd/%{name}-%{version}.tar.gz
 # Source0-md5:	2757c59517e59771bd9d249aea760b41
-Source1:	%{name}.conf
-Source2:	%{name}-passwd
+#Source1:	%{name}.conf
+#Source2:	%{name}-passwd
 URL:		http://tiefighter.et.tudelft.nl/~arthur/cvsd/
+Requires(pre):	/usr/bin/getgid
+Requires(pre):	/bin/id
+Requires(pre):	/usr/sbin/groupadd
+Requires(pre):	/usr/sbin/useradd
+Requires(pre):	cvs
+Requires(pre):	/usr/bin/ldd
+Requires(pre):	fileutils
+Requires(pre):	textutils
+Requires(postun):	/usr/sbin/userdel
+Requires(postun):	/usr/sbin/groupdel
 Requires:	cvs
 Buildroot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%define		homedir		/home/cvsowner
+%define		rootdir		%{homedir}/cvsd-root
+# TODO: change
+%define		cgid		2401
+%define		cuid		2401
 
 %description
 cvsd is a chroot/suid wrapper for running a cvs pserver more securely.
@@ -29,48 +47,51 @@ wersji zasobów s³u¿±cym do zarz±dzania projektami.
 %setup -q
 
 %build
-%{__make} all
+%configure
+
+%{__make}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{%{_sbindir},{/home/cvsowner/cvsd-root,}%{_sysconfdir}}
+install -d $RPM_BUILD_ROOT%{rootdir}/{etc,bin,lib,tmp,dev,cvsroot}
 
-export PREFIX=${RPM_BUILD_ROOT}
-#make -e install
+%{__make} install \
+	DESTDIR=$RPM_BUILD_ROOT
+
+#install %{SOURCE2} $RPM_BUILD_ROOT%{rootdir}/etc/passwd
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %pre
-SRCDIR=$PWD
-if ! grep -q cvsowner /etc/passwd ; then
-	echo "Creating cvsowner, group cvsadmin, and setting up /home/cvsowner..."
-	mkdir -p /home/cvsowner
-	groupadd -g 2401 cvsadmin
-	useradd -u 2401 -g 2401 -c "CVS UID" -m -k /home/cvsowner -G cvsadmin cvsowner
-	chown -R cvsowner:cvsadmin /home/cvsowner
+if [ -n "`/usr/bin/getgid cvsadmin`" ]; then
+	if [ "`/usr/bin/getgid cvsadmin`" != "%{cgid}" ]; then
+		echo "Error: group cvsadmin doesn't have gid=%{cgid}. Correct this before installing cvsd." 1>&2
+		exit 1
+	fi
+else
+	/usr/sbin/groupadd -g %{cgid} cvsadmin
 fi
-if [ ! -f /home/cvsowner/cvsd-root ] ; then
-	echo "Setting up /home/cvsowner/cvsd-root..."
-	cd /home/cvsowner
-	mkdir cvsd-root
-	cd cvsd-root
-	mkdir etc bin lib tmp dev cvsroot
+if [ -n "`/bin/id -u cvsowner 2>/dev/null`" ]; then
+	if [ "`/bin/id -u cvsowner`" != "%{cuid}" ]; then
+		echo "Error: user cvsowner doesn't have uid=%{cuid}. Correct this before installing cvsd." 1>&2
+		exit 1
+	fi
+else
+	/usr/sbin/useradd -u %{cuid} -g %{cgid} -c "CVS UID" -d %{homedir} cvsowner
+fi
+if [ ! -f %{rootdir}/bin/cvs ] ; then
+	echo "Setting up %{rootdir}..."
 	cd /lib
-	install -m755 `ldd /usr/bin/cvs | cut -d " " -f 1` /lib/libnss_files.so.1 /home/cvsowner/cvsd-root/lib/
-	install -m755 /usr/bin/cvs /home/cvsowner/cvsd-root/bin/
-	install -m644 ${RPM_SOURCE_DIR}/cvsd-pass /home/cvsowner/cvsd-root/etc/passwd
-	chown -R cvsowner:cvsadmin /home/cvsowner
-	mknod /home/cvsowner/cvsd-root/dev/null c 1 3
+	install -m755 -o root -g root `ldd /usr/bin/cvs | cut -d " " -f 1` /lib/libnss_files.so.1 \
+		%{rootdir}/lib
+	install -m755 /usr/bin/cvs %{rootdir}/bin
 fi
-if ! grep -q cvspserver /etc/services ; then
-	echo "no existing cvspserver line in /etc/services, adding..."
-	echo -e "cvspserver\t2401/tcp\t\t# CVS pserver auth" >> /etc/services
-fi
-if ! grep -q cvspserver /etc/inetd.conf ; then
-	echo "no existing cvspserver line in /etc/inetd.conf, adding..."
-	echo -e "cvspserver\tstream\ttcp\tnowait\troot\t/usr/sbin/cvsd\tcvsd" >> /etc/inetd.conf
-fi
+# TODO: rc-inetd file
+#if ! grep -q cvspserver /etc/inetd.conf ; then
+#	echo "no existing cvspserver line in /etc/inetd.conf, adding..."
+#	echo -e "cvspserver\tstream\ttcp\tnowait\troot\t/usr/sbin/cvsd\tcvsd" >> /etc/inetd.conf
+#fi
 echo "Now check out /etc/cvsd.conf, restart inetd (killall -HUP inetd), and "
 echo "initialise the repository using: "
 echo "\"cvs -d :pserver:cvsadmin@localhost:/cvsroot init\" "
@@ -78,13 +99,27 @@ echo "Also edit/modify/whatever the /home/cvsowner/cvsd-root/etc/passwd file."
 echo "Default user/passwds are cvs/cvs (for ro anon), user/pass. Change these!"
 
 %postun
-/usr/sbin/userdel cvsowner
-/usr/sbin/groupdel cvsadmin
+if [ "$1" = "0" ]; then
+	/usr/sbin/userdel cvsowner
+	/usr/sbin/groupdel cvsadmin
+fi
 
 %files
 %defattr(644,root,root,755)
-%doc README
-%dir /home/cvsowner
-%attr(-,root,root) %config(noreplace) %{_sysconfdir}/cvsd.conf
-%config(noreplace) /home/cvsowner/cvsd-root%{_sysconfdir}/passwd
-%attr(-,root,root) %{_sbindir}/cvsd
+%doc AUTHORS ChangeLog FAQ NEWS README TODO
+%attr(755,root,root) %{_sbindir}/cvsd
+%attr(755,root,root) %{_sbindir}/cvsd-buildroot
+%attr(755,root,root) %{_sbindir}/cvsd-passwd
+%dir %{_sysconfdir}/cvsd
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/cvsd/cvsd.conf
+#%attr(754,root,root) /etc/rc.d/init.d/cvsd
+%{_mandir}/man[58]/*
+%dir %{homedir}
+%dir %{rootdir}
+%dir %{rootdir}/bin
+%attr(755,cvsowner,cvsadmin) %dir %{rootdir}/cvsroot
+%dir %{rootdir}/dev
+%dev(c,1,3) %{rootdir}/dev/null
+%dir %{rootdir}/lib
+%dir %{rootdir}/tmp
+#%config(noreplace) %verify(not size mtime md5) %{rootdir}/etc/passwd
