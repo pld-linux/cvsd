@@ -1,3 +1,6 @@
+# TODO:
+# - cvsadmin uid,gid, evil postun
+# - $RPM_SOURCE_DIR in %pre???!!!
 Summary:	cvsd, a chroot/suid wrapper for running a cvs pserver
 Summary(pl):	cvsd - nak³adka na cvs pserver korzystaj±ca z chroot/suid
 Name:		cvsd
@@ -35,6 +38,9 @@ install -d $RPM_BUILD_ROOT{%{_sbindir},{/home/cvsowner/cvsd-root,}%{_sysconfdir}
 export PREFIX=${RPM_BUILD_ROOT}
 #make -e install
 
+%clean
+rm -rf $RPM_BUILD_ROOT
+
 %pre
 SRCDIR=$PWD
 if ! grep -q cvsowner /etc/passwd ; then
@@ -42,7 +48,7 @@ if ! grep -q cvsowner /etc/passwd ; then
 	mkdir -p /home/cvsowner
 	groupadd -g 2401 cvsadmin
 	useradd -u 2401 -g 2401 -c "CVS UID" -m -k /home/cvsowner -G cvsadmin cvsowner
-	chown -R cvsowner.cvsadmin /home/cvsowner
+	chown -R cvsowner:cvsadmin /home/cvsowner
 fi
 if [ ! -f /home/cvsowner/cvsd-root ] ; then
 	echo "Setting up /home/cvsowner/cvsd-root..."
@@ -54,7 +60,7 @@ if [ ! -f /home/cvsowner/cvsd-root ] ; then
 	install -m755 `ldd /usr/bin/cvs | cut -d " " -f 1` /lib/libnss_files.so.1 /home/cvsowner/cvsd-root/lib/
 	install -m755 /usr/bin/cvs /home/cvsowner/cvsd-root/bin/
 	install -m644 ${RPM_SOURCE_DIR}/cvsd-pass /home/cvsowner/cvsd-root/etc/passwd
-	chown -R cvsowner.cvsadmin /home/cvsowner
+	chown -R cvsowner:cvsadmin /home/cvsowner
 	mknod /home/cvsowner/cvsd-root/dev/null c 1 3
 fi
 if ! grep -q cvspserver /etc/services ; then
@@ -82,6 +88,3 @@ echo "Default user/passwds are cvs/cvs (for ro anon), user/pass. Change these!"
 %attr(-,root,root) %config(noreplace) %{_sysconfdir}/cvsd.conf
 %config(noreplace) /home/cvsowner/cvsd-root%{_sysconfdir}/passwd
 %attr(-,root,root) %{_sbindir}/cvsd
-
-%clean
-rm -rf $RPM_BUILD_ROOT
