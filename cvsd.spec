@@ -1,32 +1,35 @@
-Summary: cvsd, a chroot/suid wrapper for running a cvs pserver.
-Name: cvsd
-Version: 0.6
-Release: 1
-Copyright: GPL
-Group: Development/Version Control
-Source0: http://cblack.mokey.com/cvsd/cvsd-0.6.tar.gz
-Source1: cvsd.conf
-Source2: cvsd-passwd
-URL: http://cblack.mokey.com/cvsd/
-Packager: Chris Black <cblack@mokey.com>
-Requires: cvs
-Buildroot: /tmp/%{name}-root
+Summary:	cvsd, a chroot/suid wrapper for running a cvs pserver
+Summary(pl):	cvsd - nak³adka na cvs pserver korzystaj±ca z chroot/suid
+Name:		cvsd
+Version:	0.6
+Release:	1
+License:	GPL
+Group:		Development/Version Control
+Source0:	http://cblack.mokey.com/cvsd/%{name}-%{version}.tar.gz
+Source1:	%{name}.conf
+Source2:	%{name}-passwd
+URL:		http://cblack.mokey.com/cvsd/
+Requires:	cvs
+Buildroot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
 cvsd is a chroot/suid wrapper for running a cvs pserver more securely.
 cvs is a version control system for managing projects.
 
+%description -l pl
+cvsd jest nak³adk± s³u¿±c± do bezpieczniejszego uruchamiania programu
+cvs pserver, korzystaj±c± z chroot/suid. cvs jest systemem kontroli
+wersji zasobów s³u¿±cym do zarz±dzania projektami.
+
 %prep
-%setup
+%setup -q
 
 %build
-make all
+%{__make} all
 
 %install
-#rm -rf $RPM_BUILD_ROOT
-mkdir -p ${RPM_BUILD_ROOT}/usr/sbin
-mkdir -p ${RPM_BUILD_ROOT}/etc
-mkdir -p ${RPM_BUILD_ROOT}/home/cvsowner/cvsd-root/etc
+rm -rf $RPM_BUILD_ROOT
+install -d $RPM_BUILD_ROOT{%{_sbindir},{/home/cvsowner/cvsd-root,}%{_sysconfdir}}
 
 export PREFIX=${RPM_BUILD_ROOT}
 #make -e install
@@ -72,16 +75,12 @@ echo "Default user/passwds are cvs/cvs (for ro anon), user/pass. Change these!"
 /usr/sbin/groupdel cvsadmin
 
 %files
-%defattr(-,cvsowner,cvsadmin)
+%defattr(644,root,root,755)
+%doc README
 %dir /home/cvsowner
-%attr(-,root,root) %config(noreplace) /etc/cvsd.conf
-%config(noreplace) /home/cvsowner/cvsd-root/etc/passwd
-%doc	README
-%attr(-,root,root) /usr/sbin/cvsd
+%attr(-,root,root) %config(noreplace) %{_sysconfdir}/cvsd.conf
+%config(noreplace) /home/cvsowner/cvsd-root%{_sysconfdir}/passwd
+%attr(-,root,root) %{_sbindir}/cvsd
 
-%changelog
-* Sun May 9 1999 Chris Black
-- Updated to 0.6, made %install install cvsd-pass itself.
-
-* Tue May 4 1999 Chris Black
-- Made initial rpm spec file and install script.
+%clean
+rm -rf $RPM_BUILD_ROOT
