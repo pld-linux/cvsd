@@ -2,7 +2,7 @@ Summary:	cvsd, a chroot/suid wrapper for running a cvs pserver
 Summary(pl):	cvsd - nak³adka na cvs pserver korzystaj±ca z chroot/suid
 Name:		cvsd
 Version:	0.6
-Release:	1
+Release:	0.1
 License:	GPL
 Group:		Development/Version Control
 Source0:	http://cblack.mokey.com/cvsd/%{name}-%{version}.tar.gz
