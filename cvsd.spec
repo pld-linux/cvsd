@@ -18,7 +18,7 @@ URL:		http://tiefighter.et.tudelft.nl/~arthur/cvsd/
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/bin/id
 Requires(pre):	/usr/sbin/groupadd
-Requires(pre):	/usr/sbin/useradd
+Requires(pre):	/usr/sbin/groupmod
 Requires(pre):	cvs
 Requires(pre):	/usr/bin/ldd
 Requires(pre):	fileutils
@@ -26,13 +26,12 @@ Requires(pre):	textutils
 Requires(postun):	/usr/sbin/userdel
 Requires(postun):	/usr/sbin/groupdel
 Requires:	cvs
+Provides:	group(cvsadmin)
+Provides:	user(cvsowner)
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		homedir		/home/cvsowner
 %define		rootdir		%{homedir}/cvsd-root
-# TODO: change
-%define		cgid		2401
-%define		cuid		2401
 
 %description
 cvsd is a chroot/suid wrapper for running a cvs pserver more securely.
@@ -65,20 +64,20 @@ rm -rf $RPM_BUILD_ROOT
 
 %pre
 if [ -n "`/usr/bin/getgid cvsadmin`" ]; then
-	if [ "`/usr/bin/getgid cvsadmin`" != "%{cgid}" ]; then
-		echo "Error: group cvsadmin doesn't have gid=%{cgid}. Correct this before installing cvsd." 1>&2
+	if [ "`/usr/bin/getgid cvsadmin`" != "53" ]; then # 2401
+		echo "Error: group cvsadmin doesn't have gid=53. Correct this before installing cvsd." 1>&2
 		exit 1
 	fi
 else
-	/usr/sbin/groupadd -g %{cgid} cvsadmin
+	/usr/sbin/groupadd -g 53 cvsadmin
 fi
 if [ -n "`/bin/id -u cvsowner 2>/dev/null`" ]; then
-	if [ "`/bin/id -u cvsowner`" != "%{cuid}" ]; then
-		echo "Error: user cvsowner doesn't have uid=%{cuid}. Correct this before installing cvsd." 1>&2
+	if [ "`/bin/id -u cvsowner`" != "128" ]; then
+		echo "Error: user cvsowner doesn't have uid=128. Correct this before installing cvsd." 1>&2
 		exit 1
 	fi
 else
-	/usr/sbin/useradd -u %{cuid} -g %{cgid} -c "CVS UID" -d %{homedir} cvsowner
+	/usr/sbin/useradd -u 128 -g 53 -c "CVS UID" -d %{homedir} cvsowner
 fi
 if [ ! -f %{rootdir}/bin/cvs ] ; then
 	echo "Setting up %{rootdir}..."
@@ -100,8 +99,8 @@ echo "Default user/passwds are cvs/cvs (for ro anon), user/pass. Change these!"
 
 %postun
 if [ "$1" = "0" ]; then
-	/usr/sbin/userdel cvsowner
-	/usr/sbin/groupdel cvsadmin
+	%userremove cvsowner
+	%groupremove cvsadmin
 fi
 
 %files
