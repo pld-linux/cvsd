@@ -5,10 +5,12 @@ Version:	0.6
 Release:	0.1
 License:	GPL
 Group:		Development/Version Control
-Source0:	http://cblack.mokey.com/cvsd/%{name}-%{version}.tar.gz
+# Source0:	http://tiefighter.et.tudelft.nl/~arthur/cvsd/%{name}-%{version}.tar.gz
+Source0:	%{name}-%{version}.tar.gz
+# Source0-md5:	ea219db7a4d4c8be80d8550074005deb
 Source1:	%{name}.conf
 Source2:	%{name}-passwd
-URL:		http://cblack.mokey.com/cvsd/
+URL:		http://tiefighter.et.tudelft.nl/~arthur/cvsd/
 Requires:	cvs
 Buildroot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
