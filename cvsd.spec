@@ -26,7 +26,7 @@ Requires(pre):	textutils
 Requires(postun):	/usr/sbin/userdel
 Requires(postun):	/usr/sbin/groupdel
 Requires:	cvs
-Buildroot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		homedir		/home/cvsowner
 %define		rootdir		%{homedir}/cvsd-root
