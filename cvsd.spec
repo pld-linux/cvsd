@@ -15,6 +15,7 @@ Source0:	http://tiefighter.et.tudelft.nl/~arthur/cvsd/%{name}-%{version}.tar.gz
 #Source1:	%{name}.conf
 #Source2:	%{name}-passwd
 URL:		http://tiefighter.et.tudelft.nl/~arthur/cvsd/
+BuildRequires:	rpmbuild(macros) >= 1.159
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/bin/id
 Requires(pre):	/usr/sbin/groupadd
