@@ -2,20 +2,23 @@
 # - cvsadmin uid,gid
 # - check permissions
 # - missing files
-# - rc-inetd file(?) / init script(?)
+# - rc-inetd file / init script - subpackages
 Summary:	cvsd, a chroot/suid wrapper for running a cvs pserver
 Summary(pl):	cvsd - nak³adka na cvs pserver korzystaj±ca z chroot/suid
 Name:		cvsd
 Version:	1.0.7
-Release:	0.1
+Release:	0.2
 License:	GPL
 Group:		Development/Version Control
 Source0:	http://tiefighter.et.tudelft.nl/~arthur/cvsd/%{name}-%{version}.tar.gz
 # Source0-md5:	3403fe3025d6578dffa2abf8a640d846
+Source1:	%{name}.init
 #Source1:	%{name}.conf
 #Source2:	%{name}-passwd
 URL:		http://tiefighter.et.tudelft.nl/~arthur/cvsd/
 BuildRequires:	rpmbuild(macros) >= 1.159
+PreReq:         rc-scripts
+Requires(post,preun):   /sbin/chkconfig
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/bin/id
 Requires(pre):	/usr/sbin/groupadd
@@ -58,6 +61,7 @@ install -d $RPM_BUILD_ROOT%{rootdir}/{etc,bin,lib,tmp,dev,cvsroot}
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
+install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
 #install %{SOURCE2} $RPM_BUILD_ROOT%{rootdir}/etc/passwd
 
 %clean
@@ -87,6 +91,15 @@ if [ ! -f %{rootdir}/bin/cvs ] ; then
 		%{rootdir}/lib
 	install -m755 /usr/bin/cvs %{rootdir}/bin
 fi
+
+%post
+/sbin/chkconfig --add cvsd
+if [ -f /var/lock/subsys/cvsd ]; then
+        /etc/rc.d/init.d/cvsd restart 1>&2
+else
+        echo "Type \"/etc/rc.d/init.d/cvsd start\" to start cvsd." 1>&2
+fi
+
 # TODO: rc-inetd file
 #if ! grep -q cvspserver /etc/inetd.conf ; then
 #	echo "no existing cvspserver line in /etc/inetd.conf, adding..."
@@ -97,6 +110,14 @@ echo "initialise the repository using: "
 echo "\"cvs -d :pserver:cvsadmin@localhost:/cvsroot init\" "
 echo "Also edit/modify/whatever the /home/cvsowner/cvsd-root/etc/passwd file."
 echo "Default user/passwds are cvs/cvs (for ro anon), user/pass. Change these!"
+
+%preun
+if [ "$1" = "0" ]; then
+        if [ -f /var/lock/subsys/cvsd ]; then
+                /etc/rc.d/init.d/cvsd stop 1>&2
+        fi
+        /sbin/chkconfig --del cvsd
+fi
 
 %postun
 if [ "$1" = "0" ]; then
@@ -112,7 +133,7 @@ fi
 %attr(755,root,root) %{_sbindir}/cvsd-passwd
 %dir %{_sysconfdir}/cvsd
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/cvsd/cvsd.conf
-#%attr(754,root,root) /etc/rc.d/init.d/cvsd
+%attr(754,root,root) /etc/rc.d/init.d/cvsd
 %{_mandir}/man[58]/*
 %dir %{homedir}
 %dir %{rootdir}
