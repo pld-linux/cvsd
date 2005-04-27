@@ -8,7 +8,7 @@ Version:	1.0.7
 Release:	0.3
 License:	GPL
 Group:		Development/Version Control
-Source0:	http://tiefighter.et.tudelft.nl/~arthur/%{name}/%{name}-%{version}.tar.gz
+Source0:	http://tiefighter.et.tudelft.nl/~arthur/cvsd/%{name}-%{version}.tar.gz
 # Source0-md5:	3403fe3025d6578dffa2abf8a640d846
 Source1:	%{name}.init
 #Source1:	%{name}.conf
@@ -28,10 +28,10 @@ Requires(pre):	textutils
 Requires(postun):	/usr/sbin/userdel
 Requires(postun):	/usr/sbin/groupdel
 Requires:	cvs
-Obsoletes:	cvs-pserver
-Obsoletes:	cvs-nserver-pserver
 Provides:	group(cvsadmin)
 Provides:	user(cvsowner)
+Obsoletes:	cvs-nserver-pserver
+Obsoletes:	cvs-pserver
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		homedir		/var/lib/cvsowner
@@ -127,7 +127,7 @@ fi
 %attr(755,root,root) %{_sbindir}/cvsd-buildroot
 %attr(755,root,root) %{_sbindir}/cvsd-passwd
 %dir %{_sysconfdir}/cvsd
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/cvsd/cvsd.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/cvsd/cvsd.conf
 %attr(754,root,root) /etc/rc.d/init.d/cvsd
 %{_mandir}/man[58]/*
 %dir %{homedir}
