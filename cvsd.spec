@@ -1,15 +1,14 @@
 # TODO:
 # - cvsadmin uid,gid
 # - check permissions
-# - missing files
 Summary:	cvsd, a chroot/suid wrapper for running a cvs pserver
 Summary(pl):	cvsd - nak³adka na cvs pserver korzystaj±ca z chroot/suid
 Name:		cvsd
 Version:	1.0.7
-Release:	0.2
+Release:	0.3
 License:	GPL
 Group:		Development/Version Control
-Source0:	http://tiefighter.et.tudelft.nl/~arthur/cvsd/%{name}-%{version}.tar.gz
+Source0:	http://tiefighter.et.tudelft.nl/~arthur/%{name}/%{name}-%{version}.tar.gz
 # Source0-md5:	3403fe3025d6578dffa2abf8a640d846
 Source1:	%{name}.init
 #Source1:	%{name}.conf
@@ -29,11 +28,13 @@ Requires(pre):	textutils
 Requires(postun):	/usr/sbin/userdel
 Requires(postun):	/usr/sbin/groupdel
 Requires:	cvs
+Obsoletes:      cvs-pserver
+Obsoletes:      cvs-nserver-pserver
 Provides:	group(cvsadmin)
 Provides:	user(cvsowner)
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
-%define		homedir		/home/cvsowner
+%define		homedir		/var/lib/cvsowner
 %define		rootdir		%{homedir}/cvsd-root
 
 %description
@@ -55,7 +56,8 @@ wersji zasobów s³u¿±cym do zarz±dzania projektami.
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{rootdir}/{etc,bin,lib,tmp,dev,cvsroot}
+install -d $RPM_BUILD_ROOT%{rootdir}/{etc,bin,lib,tmp,dev,cvsroot} \
+	   $RPM_BUILD_ROOT/etc/rc.d/init.d
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -99,8 +101,7 @@ else
         echo "Type \"/etc/rc.d/init.d/cvsd start\" to start cvsd." 1>&2
 fi
 
-echo "Now check out /etc/cvsd.conf, restart inetd (killall -HUP inetd), and "
-echo "initialise the repository using: "
+echo "Now check out /etc/cvsd.conf and initialise the repository using: "
 echo "\"cvs -d :pserver:cvsadmin@localhost:/cvsroot init\" "
 echo "Also edit/modify/whatever the /home/cvsowner/cvsd-root/etc/passwd file."
 echo "Default user/passwds are cvs/cvs (for ro anon), user/pass. Change these!"
