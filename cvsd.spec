@@ -15,8 +15,8 @@ Source1:	%{name}.init
 #Source2:	%{name}-passwd
 URL:		http://tiefighter.et.tudelft.nl/~arthur/cvsd/
 BuildRequires:	rpmbuild(macros) >= 1.159
-PreReq:         rc-scripts
-Requires(post,preun):   /sbin/chkconfig
+PreReq:		rc-scripts
+Requires(post,preun):	/sbin/chkconfig
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/bin/id
 Requires(pre):	/usr/sbin/groupadd
@@ -28,8 +28,8 @@ Requires(pre):	textutils
 Requires(postun):	/usr/sbin/userdel
 Requires(postun):	/usr/sbin/groupdel
 Requires:	cvs
-Obsoletes:      cvs-pserver
-Obsoletes:      cvs-nserver-pserver
+Obsoletes:	cvs-pserver
+Obsoletes:	cvs-nserver-pserver
 Provides:	group(cvsadmin)
 Provides:	user(cvsowner)
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -96,9 +96,9 @@ fi
 %post
 /sbin/chkconfig --add cvsd
 if [ -f /var/lock/subsys/cvsd ]; then
-        /etc/rc.d/init.d/cvsd restart 1>&2
+	/etc/rc.d/init.d/cvsd restart 1>&2
 else
-        echo "Type \"/etc/rc.d/init.d/cvsd start\" to start cvsd." 1>&2
+	echo "Type \"/etc/rc.d/init.d/cvsd start\" to start cvsd." 1>&2
 fi
 
 echo "Now check out /etc/cvsd.conf and initialise the repository using: "
@@ -108,10 +108,10 @@ echo "Default user/passwds are cvs/cvs (for ro anon), user/pass. Change these!"
 
 %preun
 if [ "$1" = "0" ]; then
-        if [ -f /var/lock/subsys/cvsd ]; then
-                /etc/rc.d/init.d/cvsd stop 1>&2
-        fi
-        /sbin/chkconfig --del cvsd
+	if [ -f /var/lock/subsys/cvsd ]; then
+		/etc/rc.d/init.d/cvsd stop 1>&2
+	fi
+	/sbin/chkconfig --del cvsd
 fi
 
 %postun
