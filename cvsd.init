@@ -1,0 +1,73 @@
+#!/bin/sh
+#
+# cvsd		cvsd
+#
+# chkconfig:	2345 95 5
+#
+# description:	cvs pserver daemon
+#
+# $Id$
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+if is_yes "${NETWORKING}"; then
+	if [ ! -f /var/lock/subsys/network -a "$1" != stop -a "$1" != status ]; then
+		# nls "ERROR: Networking is down. %s can't be run." <service>
+		msg_network_down cvsd
+		exit 1
+	fi
+else
+	exit 0
+fi
+
+RETVAL=0
+case "$1" in
+  start)
+	# Check if the service is already running?
+	if [ ! -f /var/lock/subsys/cvsd ]; then
+		# show "Starting %s service" cvsd
+		msg_starting cvsd
+		daemon cvsd -f /etc/cvsd/cvsd.conf
+		RETVAL=$?
+		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/cvsd
+	else
+		# show "%s service is already running." cvsd
+		msg_already_running cvsd
+	fi
+	;;
+  stop)
+	if [ -f /var/lock/subsys/cvsd ]; then
+		# Stop daemons.
+		# show "Stopping %s service" cvsd
+		msg_stopping cvsd
+		killproc cvsd
+		rm -f /var/lock/subsys/cvsd
+	else
+		# show "%s service is not running." cvsd
+		msg_not_running cvsd
+	fi
+	;;
+  status)
+	status cvsd
+	exit $?
+	;;
+  restart|force-reload)
+	$0 stop
+	$0 start
+	exit $?
+	;;
+  *)
+	# show "Usage: %s {start|stop|restart|force-reload|status}"
+	msg_usage "$0 {start|stop|restart|force-reload|status}"
+	exit 3
+esac
+
+exit $RETVAL
+
+# This must be last line !
+# vi:syntax=sh:tw=78:ts=8:sw=4
