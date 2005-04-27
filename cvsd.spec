@@ -2,7 +2,6 @@
 # - cvsadmin uid,gid
 # - check permissions
 # - missing files
-# - rc-inetd file / init script - subpackages
 Summary:	cvsd, a chroot/suid wrapper for running a cvs pserver
 Summary(pl):	cvsd - nak³adka na cvs pserver korzystaj±ca z chroot/suid
 Name:		cvsd
@@ -100,11 +99,6 @@ else
         echo "Type \"/etc/rc.d/init.d/cvsd start\" to start cvsd." 1>&2
 fi
 
-# TODO: rc-inetd file
-#if ! grep -q cvspserver /etc/inetd.conf ; then
-#	echo "no existing cvspserver line in /etc/inetd.conf, adding..."
-#	echo -e "cvspserver\tstream\ttcp\tnowait\troot\t/usr/sbin/cvsd\tcvsd" >> /etc/inetd.conf
-#fi
 echo "Now check out /etc/cvsd.conf, restart inetd (killall -HUP inetd), and "
 echo "initialise the repository using: "
 echo "\"cvs -d :pserver:cvsadmin@localhost:/cvsroot init\" "
