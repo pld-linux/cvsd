@@ -14,7 +14,7 @@ Source1:	%{name}.init
 #Source1:	%{name}.conf
 #Source2:	%{name}-passwd
 URL:		http://tiefighter.et.tudelft.nl/~arthur/cvsd/
-BuildRequires:	rpmbuild(macros) >= 1.159
+BuildRequires:	rpmbuild(macros) >= 1.202
 PreReq:		rc-scripts
 Requires(post,preun):	/sbin/chkconfig
 Requires(pre):	/usr/bin/getgid
@@ -69,22 +69,9 @@ install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
 rm -rf $RPM_BUILD_ROOT
 
 %pre
-if [ -n "`/usr/bin/getgid cvsadmin`" ]; then
-	if [ "`/usr/bin/getgid cvsadmin`" != "53" ]; then # 2401
-		echo "Error: group cvsadmin doesn't have gid=53. Correct this before installing cvsd." 1>&2
-		exit 1
-	fi
-else
-	/usr/sbin/groupadd -g 53 cvsadmin
-fi
-if [ -n "`/bin/id -u cvsowner 2>/dev/null`" ]; then
-	if [ "`/bin/id -u cvsowner`" != "128" ]; then
-		echo "Error: user cvsowner doesn't have uid=128. Correct this before installing cvsd." 1>&2
-		exit 1
-	fi
-else
-	/usr/sbin/useradd -u 128 -g 53 -c "CVS UID" -d %{homedir} cvsowner
-fi
+%groupadd -g 53 cvsadmin
+%useradd -u 128 -g 53 -c "CVS UID" -d %{homedir} cvsowner
+
 if [ ! -f %{rootdir}/bin/cvs ] ; then
 	echo "Setting up %{rootdir}..."
 	cd /lib
