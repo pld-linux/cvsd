@@ -4,30 +4,30 @@
 Summary:	cvsd, a chroot/suid wrapper for running a cvs pserver
 Summary(pl):	cvsd - nak³adka na cvs pserver korzystaj±ca z chroot/suid
 Name:		cvsd
-Version:	1.0.7
-Release:	0.3
+Version:	1.0.9
+Release:	0.1
 License:	GPL
 Group:		Development/Version Control
-Source0:	http://tiefighter.et.tudelft.nl/~arthur/cvsd/%{name}-%{version}.tar.gz
-# Source0-md5:	3403fe3025d6578dffa2abf8a640d846
+Source0:	http://ch.tudelft.nl/~arthur/cvsd/%{name}-%{version}.tar.gz
+# Source0-md5:	ee67d1a5366f804580c08ca1d48b85fd
 Source1:	%{name}.init
 #Source1:	%{name}.conf
 #Source2:	%{name}-passwd
-URL:		http://tiefighter.et.tudelft.nl/~arthur/cvsd/
+URL:		http://ch.tudelft.nl/~arthur/cvsd/
 BuildRequires:	rpmbuild(macros) >= 1.202
-PreReq:		rc-scripts
 Requires(post,preun):	/sbin/chkconfig
-Requires(pre):	/usr/bin/getgid
+Requires(postun):	/usr/sbin/groupdel
+Requires(postun):	/usr/sbin/userdel
 Requires(pre):	/bin/id
+Requires(pre):	/usr/bin/getgid
+Requires(pre):	/usr/bin/ldd
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/groupmod
 Requires(pre):	cvs
-Requires(pre):	/usr/bin/ldd
 Requires(pre):	fileutils
 Requires(pre):	textutils
-Requires(postun):	/usr/sbin/userdel
-Requires(postun):	/usr/sbin/groupdel
 Requires:	cvs
+Requires:	rc-scripts
 Provides:	group(cvsadmin)
 Provides:	user(cvsowner)
 Obsoletes:	cvs-nserver-pserver
