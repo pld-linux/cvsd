@@ -14,7 +14,7 @@ Source1:	%{name}.init
 #Source1:	%{name}.conf
 #Source2:	%{name}-passwd
 URL:		http://ch.tudelft.nl/~arthur/cvsd/
-BuildRequires:	rpmbuild(macros) >= 1.202
+BuildRequires:	rpmbuild(macros) >= 1.268
 Requires(post,preun):	/sbin/chkconfig
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
@@ -63,7 +63,7 @@ install -d $RPM_BUILD_ROOT%{rootdir}/{etc,bin,lib,tmp,dev,cvsroot} \
 	DESTDIR=$RPM_BUILD_ROOT
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
-#install %{SOURCE2} $RPM_BUILD_ROOT%{rootdir}/etc/passwd
+#install %{SOURCE2} $RPM_BUILD_ROOT%{rootdir}%{_sysconfdir}/passwd
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -82,22 +82,21 @@ fi
 
 %post
 /sbin/chkconfig --add cvsd
-if [ -f /var/lock/subsys/cvsd ]; then
-	/etc/rc.d/init.d/cvsd restart 1>&2
-else
-	echo "Type \"/etc/rc.d/init.d/cvsd start\" to start cvsd." 1>&2
-fi
+%service cvsd restart "cvsd"
 
-echo "Now check out /etc/cvsd.conf and initialise the repository using: "
-echo "\"cvs -d :pserver:cvsadmin@localhost:/cvsroot init\" "
-echo "Also edit/modify/whatever the /home/cvsowner/cvsd-root/etc/passwd file."
-echo "Default user/passwds are cvs/cvs (for ro anon), user/pass. Change these!"
+if [ "$1" = 1 ]; then
+%banner -e %{name} <<EOF
+Now check out %{_sysconfdir}/cvsd.conf and initialise the repository using:
+cvs -d :pserver:cvsadmin@localhost:/cvsroot init
+
+Also edit/modify/whatever the /home/cvsowner/cvsd-root%{_sysconfdir}/passwd file.
+Default user/passwds are cvs/cvs (for ro anon), user/pass. Change these!
+EOF
+fi
 
 %preun
 if [ "$1" = "0" ]; then
-	if [ -f /var/lock/subsys/cvsd ]; then
-		/etc/rc.d/init.d/cvsd stop 1>&2
-	fi
+	%service cvsd stop
 	/sbin/chkconfig --del cvsd
 fi
 
@@ -125,4 +124,4 @@ fi
 %dev(c,1,3) %{rootdir}/dev/null
 %dir %{rootdir}/lib
 %dir %{rootdir}/tmp
-#%config(noreplace) %verify(not size mtime md5) %{rootdir}/etc/passwd
+#%config(noreplace) %verify(not size mtime md5) %{rootdir}%{_sysconfdir}/passwd
