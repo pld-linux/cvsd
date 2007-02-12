@@ -2,7 +2,7 @@
 # - cvsadmin uid,gid
 # - check permissions
 Summary:	cvsd, a chroot/suid wrapper for running a cvs pserver
-Summary(pl):	cvsd - nak³adka na cvs pserver korzystaj±ca z chroot/suid
+Summary(pl.UTF-8):   cvsd - nakÅ‚adka na cvs pserver korzystajÄ…ca z chroot/suid
 Name:		cvsd
 Version:	1.0.9
 Release:	0.1
@@ -41,10 +41,10 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 cvsd is a chroot/suid wrapper for running a cvs pserver more securely.
 cvs is a version control system for managing projects.
 
-%description -l pl
-cvsd jest nak³adk± s³u¿±c± do bezpieczniejszego uruchamiania programu
-cvs pserver, korzystaj±c± z chroot/suid. cvs jest systemem kontroli
-wersji zasobów s³u¿±cym do zarz±dzania projektami.
+%description -l pl.UTF-8
+cvsd jest nakÅ‚adkÄ… sÅ‚uÅ¼Ä…cÄ… do bezpieczniejszego uruchamiania programu
+cvs pserver, korzystajÄ…cÄ… z chroot/suid. cvs jest systemem kontroli
+wersji zasobÃ³w sÅ‚uÅ¼Ä…cym do zarzÄ…dzania projektami.
 
 %prep
 %setup -q
