@@ -2,7 +2,7 @@
 # - cvsadmin uid,gid
 # - check permissions
 Summary:	cvsd, a chroot/suid wrapper for running a cvs pserver
-Summary(pl.UTF-8):   cvsd - nakładka na cvs pserver korzystająca z chroot/suid
+Summary(pl.UTF-8):	cvsd - nakładka na cvs pserver korzystająca z chroot/suid
 Name:		cvsd
 Version:	1.0.9
 Release:	0.1
