@@ -23,10 +23,10 @@ Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/bin/ldd
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/groupmod
-Requires(pre):	cvs
+Requires(pre):	cvs-client
 Requires(pre):	fileutils
 Requires(pre):	textutils
-Requires:	cvs
+Requires:	cvs-client
 Requires:	rc-scripts
 Provides:	group(cvsadmin)
 Provides:	user(cvsowner)
